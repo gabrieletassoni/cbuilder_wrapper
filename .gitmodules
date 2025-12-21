@@ -1,0 +1,3 @@
+[submodule "endor/submodules/cbuilder"]
+	path = endor/submodules/cbuilder
+	url = git@github.com:gabrieletassoni/cbuilder.git
