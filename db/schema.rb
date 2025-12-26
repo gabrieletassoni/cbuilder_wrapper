@@ -69,6 +69,17 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "affiliation_leaders", force: :cascade do |t|
+    t.bigint "affiliation_id", null: false
+    t.bigint "fighter_id", null: false
+    t.boolean "required", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["affiliation_id", "fighter_id"], name: "index_affiliation_leaders_on_affiliation_id_and_fighter_id", unique: true
+    t.index ["affiliation_id"], name: "index_affiliation_leaders_on_affiliation_id"
+    t.index ["fighter_id"], name: "index_affiliation_leaders_on_fighter_id"
+  end
+
   create_table "affiliations", force: :cascade do |t|
     t.string "name", null: false
     t.bigint "army_id", null: false
@@ -82,9 +93,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
   create_table "armies", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
+    t.bigint "path_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_armies_on_name", unique: true
+    t.index ["path_id"], name: "index_armies_on_path_id"
   end
 
   create_table "army_lists", force: :cascade do |t|
@@ -108,8 +121,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
     t.text "description"
     t.integer "cost", default: 0
     t.boolean "is_relic", default: false
+    t.bigint "army_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["army_id"], name: "index_artifacts_on_army_id"
     t.index ["name"], name: "index_artifacts_on_name", unique: true
   end
 
@@ -154,7 +169,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
     t.bigint "affiliation_id"
     t.bigint "rank_id", null: false
     t.bigint "size_id", null: false
-    t.bigint "path_id"
     t.integer "base_cost", default: 0
     t.boolean "is_character", default: false
     t.boolean "is_base_profile", default: true
@@ -179,7 +193,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
     t.index ["army_id", "is_character"], name: "index_fighters_on_army_id_and_is_character"
     t.index ["army_id"], name: "index_fighters_on_army_id"
     t.index ["name"], name: "index_fighters_on_name"
-    t.index ["path_id"], name: "index_fighters_on_path_id"
     t.index ["rank_id"], name: "index_fighters_on_rank_id"
     t.index ["size_id"], name: "index_fighters_on_size_id"
   end
@@ -297,7 +310,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
   create_table "miracles", force: :cascade do |t|
     t.string "name", null: false
     t.bigint "deity_id"
-    t.string "aspects"
+    t.bigint "army_id"
+    t.string "aspect_creation"
+    t.string "aspect_alteration"
+    t.string "aspect_destruction"
     t.string "fervor"
     t.string "difficulty"
     t.string "range"
@@ -305,6 +321,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
     t.text "effect"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["army_id"], name: "index_miracles_on_army_id"
     t.index ["deity_id"], name: "index_miracles_on_deity_id"
     t.index ["name"], name: "index_miracles_on_name", unique: true
   end
@@ -389,12 +406,29 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
     t.index ["fighter_id"], name: "index_profiles_on_fighter_id"
   end
 
+  create_table "profiles_solos", id: false, force: :cascade do |t|
+    t.bigint "profile_id", null: false
+    t.bigint "solo_id", null: false
+    t.index ["profile_id", "solo_id"], name: "index_profiles_solos_on_profile_id_and_solo_id", unique: true
+  end
+
+  create_table "rank_categories", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "code", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_rank_categories_on_code", unique: true
+  end
+
   create_table "ranks", force: :cascade do |t|
     t.string "name", null: false
     t.integer "value", default: 1
+    t.bigint "rank_category_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_ranks_on_name", unique: true
+    t.index ["rank_category_id"], name: "index_ranks_on_rank_category_id"
   end
 
   create_table "requirements", force: :cascade do |t|
@@ -458,9 +492,21 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
     t.index ["name"], name: "index_skills_on_name", unique: true
   end
 
+  create_table "solos", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.integer "cost", default: 0
+    t.bigint "affiliation_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["affiliation_id"], name: "index_solos_on_affiliation_id"
+    t.index ["name"], name: "index_solos_on_name", unique: true
+  end
+
   create_table "spells", force: :cascade do |t|
     t.string "name", null: false
     t.bigint "magic_path_id"
+    t.bigint "army_id"
     t.string "difficulty"
     t.string "cost_string"
     t.string "range"
@@ -468,6 +514,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
     t.text "effect"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["army_id"], name: "index_spells_on_army_id"
     t.index ["magic_path_id"], name: "index_spells_on_magic_path_id"
     t.index ["name"], name: "index_spells_on_name", unique: true
   end
@@ -563,13 +610,16 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "affiliation_leaders", "affiliations"
+  add_foreign_key "affiliation_leaders", "fighters"
   add_foreign_key "affiliations", "armies"
+  add_foreign_key "armies", "paths"
   add_foreign_key "army_lists", "armies"
   add_foreign_key "army_lists", "game_formats"
   add_foreign_key "army_lists", "users"
+  add_foreign_key "artifacts", "armies"
   add_foreign_key "fighters", "affiliations"
   add_foreign_key "fighters", "armies"
-  add_foreign_key "fighters", "paths"
   add_foreign_key "fighters", "ranks"
   add_foreign_key "fighters", "sizes"
   add_foreign_key "fighters_skills", "fighters"
@@ -578,6 +628,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
   add_foreign_key "list_entries", "profiles"
   add_foreign_key "list_nexuses", "army_lists"
   add_foreign_key "list_nexuses", "nexuses"
+  add_foreign_key "miracles", "armies"
   add_foreign_key "miracles", "deities"
   add_foreign_key "nexuses", "armies"
   add_foreign_key "permission_roles", "permissions"
@@ -589,9 +640,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
   add_foreign_key "profile_modifiers", "stat_modifiers"
   add_foreign_key "profiles", "affiliations"
   add_foreign_key "profiles", "fighters"
+  add_foreign_key "ranks", "rank_categories"
   add_foreign_key "role_users", "roles"
   add_foreign_key "role_users", "users"
   add_foreign_key "saved_filters", "users", column: "admin_user_id"
+  add_foreign_key "solos", "affiliations"
+  add_foreign_key "spells", "armies"
   add_foreign_key "spells", "magic_paths"
   add_foreign_key "stat_modifiers", "modification_types"
   add_foreign_key "stat_modifiers", "skills", column: "granted_skill_id"
