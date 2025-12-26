@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_21_153248) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -69,6 +69,175 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_21_153248) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "affiliations", force: :cascade do |t|
+    t.string "name", null: false
+    t.bigint "army_id", null: false
+    t.text "bonus_description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["army_id", "name"], name: "index_affiliations_on_army_id_and_name"
+    t.index ["army_id"], name: "index_affiliations_on_army_id"
+  end
+
+  create_table "armies", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_armies_on_name", unique: true
+  end
+
+  create_table "army_lists", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "army_id", null: false
+    t.bigint "game_format_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.boolean "published", default: false
+    t.integer "total_points_cache", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["army_id"], name: "index_army_lists_on_army_id"
+    t.index ["game_format_id"], name: "index_army_lists_on_game_format_id"
+    t.index ["user_id", "published"], name: "index_army_lists_on_user_id_and_published"
+    t.index ["user_id"], name: "index_army_lists_on_user_id"
+  end
+
+  create_table "artifacts", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.integer "cost", default: 0
+    t.boolean "is_relic", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_artifacts_on_name", unique: true
+  end
+
+  create_table "deities", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_deities_on_name", unique: true
+  end
+
+  create_table "equipment", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.integer "cost", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_equipment_on_name", unique: true
+  end
+
+  create_table "equipment_fighters", id: false, force: :cascade do |t|
+    t.bigint "fighter_id", null: false
+    t.bigint "equipment_id", null: false
+    t.index ["fighter_id", "equipment_id"], name: "index_equipment_fighters_on_fighter_id_and_equipment_id", unique: true
+  end
+
+  create_table "equipment_list_entries", id: false, force: :cascade do |t|
+    t.bigint "list_entry_id", null: false
+    t.bigint "equipment_id", null: false
+    t.index ["list_entry_id", "equipment_id"], name: "index_equipment_list_entries_on_list_entry_id_and_equipment_id", unique: true
+  end
+
+  create_table "equipment_profiles", id: false, force: :cascade do |t|
+    t.bigint "profile_id", null: false
+    t.bigint "equipment_id", null: false
+    t.index ["profile_id", "equipment_id"], name: "index_equipment_profiles_on_profile_id_and_equipment_id", unique: true
+  end
+
+  create_table "fighters", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "title"
+    t.bigint "army_id", null: false
+    t.bigint "affiliation_id"
+    t.bigint "rank_id", null: false
+    t.bigint "size_id", null: false
+    t.bigint "path_id"
+    t.integer "base_cost", default: 0
+    t.boolean "is_character", default: false
+    t.boolean "is_base_profile", default: true
+    t.float "movement_ground"
+    t.float "movement_fly"
+    t.integer "initiative"
+    t.integer "attack"
+    t.integer "strength"
+    t.integer "defence"
+    t.integer "resilience"
+    t.integer "aim"
+    t.integer "courage"
+    t.integer "fear"
+    t.integer "discipline"
+    t.integer "power"
+    t.integer "faith_create"
+    t.integer "faith_alter"
+    t.integer "faith_destroy"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["affiliation_id"], name: "index_fighters_on_affiliation_id"
+    t.index ["army_id", "is_character"], name: "index_fighters_on_army_id_and_is_character"
+    t.index ["army_id"], name: "index_fighters_on_army_id"
+    t.index ["name"], name: "index_fighters_on_name"
+    t.index ["path_id"], name: "index_fighters_on_path_id"
+    t.index ["rank_id"], name: "index_fighters_on_rank_id"
+    t.index ["size_id"], name: "index_fighters_on_size_id"
+  end
+
+  create_table "fighters_keywords", id: false, force: :cascade do |t|
+    t.bigint "fighter_id", null: false
+    t.bigint "keyword_id", null: false
+    t.index ["fighter_id", "keyword_id"], name: "index_fighters_keywords_on_fighter_id_and_keyword_id", unique: true
+  end
+
+  create_table "fighters_miracles", id: false, force: :cascade do |t|
+    t.bigint "fighter_id", null: false
+    t.bigint "miracle_id", null: false
+    t.index ["fighter_id", "miracle_id"], name: "index_fighters_miracles_on_fighter_id_and_miracle_id", unique: true
+  end
+
+  create_table "fighters_skills", force: :cascade do |t|
+    t.bigint "fighter_id", null: false
+    t.bigint "skill_id", null: false
+    t.integer "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fighter_id"], name: "index_fighters_skills_on_fighter_id"
+    t.index ["skill_id"], name: "index_fighters_skills_on_skill_id"
+  end
+
+  create_table "fighters_spells", id: false, force: :cascade do |t|
+    t.bigint "fighter_id", null: false
+    t.bigint "spell_id", null: false
+    t.index ["fighter_id", "spell_id"], name: "index_fighters_spells_on_fighter_id_and_spell_id", unique: true
+  end
+
+  create_table "game_formats", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "min_points", default: 0
+    t.integer "max_points", null: false
+    t.integer "min_models", default: 0
+    t.integer "min_character_percentage", default: 0
+    t.integer "max_character_percentage", default: 50
+    t.integer "max_war_machine_percentage", default: 30
+    t.integer "max_monster_percentage", default: 30
+    t.integer "max_flying_percentage", default: 65
+    t.integer "max_scouts_percentage", default: 75
+    t.integer "max_scouts_number", default: 9
+    t.integer "max_duplicate_profiles", default: 1
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_game_formats_on_name", unique: true
+  end
+
+  create_table "keywords", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_keywords_on_name", unique: true
+  end
+
   create_table "ldap_servers", force: :cascade do |t|
     t.string "host", null: false
     t.integer "port", default: 389
@@ -93,6 +262,81 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_21_153248) do
     t.index ["name"], name: "index_ldap_servers_on_name"
     t.index ["phone"], name: "index_ldap_servers_on_phone"
     t.index ["surname"], name: "index_ldap_servers_on_surname"
+  end
+
+  create_table "list_entries", force: :cascade do |t|
+    t.bigint "army_list_id", null: false
+    t.bigint "profile_id", null: false
+    t.integer "quantity", default: 1
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["army_list_id", "profile_id"], name: "index_list_entries_on_army_list_id_and_profile_id", unique: true
+    t.index ["army_list_id"], name: "index_list_entries_on_army_list_id"
+    t.index ["profile_id"], name: "index_list_entries_on_profile_id"
+  end
+
+  create_table "list_nexuses", force: :cascade do |t|
+    t.bigint "army_list_id", null: false
+    t.bigint "nexus_id", null: false
+    t.integer "quantity", default: 1
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["army_list_id", "nexus_id"], name: "index_list_nexuses_on_army_list_id_and_nexus_id", unique: true
+    t.index ["army_list_id"], name: "index_list_nexuses_on_army_list_id"
+    t.index ["nexus_id"], name: "index_list_nexuses_on_nexus_id"
+  end
+
+  create_table "magic_paths", force: :cascade do |t|
+    t.string "name"
+    t.string "element"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_magic_paths_on_name", unique: true
+  end
+
+  create_table "miracles", force: :cascade do |t|
+    t.string "name", null: false
+    t.bigint "deity_id"
+    t.string "aspects"
+    t.string "fervor"
+    t.string "difficulty"
+    t.string "range"
+    t.string "duration"
+    t.text "effect"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deity_id"], name: "index_miracles_on_deity_id"
+    t.index ["name"], name: "index_miracles_on_name", unique: true
+  end
+
+  create_table "modification_types", force: :cascade do |t|
+    t.string "code", null: false
+    t.string "symbol"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_modification_types_on_code", unique: true
+  end
+
+  create_table "nexuses", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "resistance"
+    t.integer "structure"
+    t.integer "cost"
+    t.text "effect"
+    t.bigint "army_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["army_id"], name: "index_nexuses_on_army_id"
+    t.index ["name"], name: "index_nexuses_on_name", unique: true
+  end
+
+  create_table "paths", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_paths_on_name", unique: true
   end
 
   create_table "permission_roles", force: :cascade do |t|
@@ -125,6 +369,49 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_21_153248) do
     t.index ["name"], name: "index_predicates_on_name", unique: true
   end
 
+  create_table "profile_modifiers", force: :cascade do |t|
+    t.bigint "profile_id", null: false
+    t.bigint "stat_modifier_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["profile_id", "stat_modifier_id"], name: "idx_uniq_prof_mod", unique: true
+    t.index ["profile_id"], name: "index_profile_modifiers_on_profile_id"
+    t.index ["stat_modifier_id"], name: "index_profile_modifiers_on_stat_modifier_id"
+  end
+
+  create_table "profiles", force: :cascade do |t|
+    t.bigint "fighter_id", null: false
+    t.bigint "affiliation_id"
+    t.string "custom_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["affiliation_id"], name: "index_profiles_on_affiliation_id"
+    t.index ["fighter_id"], name: "index_profiles_on_fighter_id"
+  end
+
+  create_table "ranks", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "value", default: 1
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_ranks_on_name", unique: true
+  end
+
+  create_table "requirements", force: :cascade do |t|
+    t.string "restrictable_type", null: false
+    t.bigint "restrictable_id", null: false
+    t.string "required_entity_type"
+    t.bigint "required_entity_id"
+    t.string "check_type", null: false
+    t.integer "min_value"
+    t.integer "max_value"
+    t.string "stat_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["required_entity_type", "required_entity_id"], name: "index_requirements_on_required_entity"
+    t.index ["restrictable_type", "restrictable_id"], name: "index_requirements_on_restrictable"
+  end
+
   create_table "role_users", force: :cascade do |t|
     t.bigint "role_id", null: false
     t.bigint "user_id", null: false
@@ -150,6 +437,66 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_21_153248) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["admin_user_id"], name: "index_saved_filters_on_admin_user_id"
+  end
+
+  create_table "sizes", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "base_wounds", default: 1
+    t.integer "base_force", default: 1
+    t.string "base_dimensions"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_sizes_on_name", unique: true
+  end
+
+  create_table "skills", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.boolean "has_value", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_skills_on_name", unique: true
+  end
+
+  create_table "spells", force: :cascade do |t|
+    t.string "name", null: false
+    t.bigint "magic_path_id"
+    t.string "difficulty"
+    t.string "cost_string"
+    t.string "range"
+    t.string "duration"
+    t.text "effect"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["magic_path_id"], name: "index_spells_on_magic_path_id"
+    t.index ["name"], name: "index_spells_on_name", unique: true
+  end
+
+  create_table "stat_definitions", force: :cascade do |t|
+    t.string "code", null: false
+    t.string "label"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_stat_definitions_on_code", unique: true
+  end
+
+  create_table "stat_modifiers", force: :cascade do |t|
+    t.string "source_type", null: false
+    t.bigint "source_id", null: false
+    t.bigint "stat_definition_id"
+    t.bigint "modification_type_id", null: false
+    t.integer "value_integer"
+    t.string "value_string"
+    t.bigint "granted_skill_id"
+    t.boolean "is_mandatory", default: false
+    t.string "condition"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["granted_skill_id"], name: "index_stat_modifiers_on_granted_skill_id"
+    t.index ["modification_type_id"], name: "index_stat_modifiers_on_modification_type_id"
+    t.index ["source_type", "source_id"], name: "index_stat_modifiers_on_source"
+    t.index ["stat_definition_id"], name: "index_stat_modifiers_on_stat_definition_id"
   end
 
   create_table "targets", force: :cascade do |t|
@@ -216,14 +563,39 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_21_153248) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "affiliations", "armies"
+  add_foreign_key "army_lists", "armies"
+  add_foreign_key "army_lists", "game_formats"
+  add_foreign_key "army_lists", "users"
+  add_foreign_key "fighters", "affiliations"
+  add_foreign_key "fighters", "armies"
+  add_foreign_key "fighters", "paths"
+  add_foreign_key "fighters", "ranks"
+  add_foreign_key "fighters", "sizes"
+  add_foreign_key "fighters_skills", "fighters"
+  add_foreign_key "fighters_skills", "skills"
+  add_foreign_key "list_entries", "army_lists"
+  add_foreign_key "list_entries", "profiles"
+  add_foreign_key "list_nexuses", "army_lists"
+  add_foreign_key "list_nexuses", "nexuses"
+  add_foreign_key "miracles", "deities"
+  add_foreign_key "nexuses", "armies"
   add_foreign_key "permission_roles", "permissions"
   add_foreign_key "permission_roles", "roles"
   add_foreign_key "permissions", "actions"
   add_foreign_key "permissions", "predicates"
   add_foreign_key "permissions", "targets"
+  add_foreign_key "profile_modifiers", "profiles"
+  add_foreign_key "profile_modifiers", "stat_modifiers"
+  add_foreign_key "profiles", "affiliations"
+  add_foreign_key "profiles", "fighters"
   add_foreign_key "role_users", "roles"
   add_foreign_key "role_users", "users"
   add_foreign_key "saved_filters", "users", column: "admin_user_id"
+  add_foreign_key "spells", "magic_paths"
+  add_foreign_key "stat_modifiers", "modification_types"
+  add_foreign_key "stat_modifiers", "skills", column: "granted_skill_id"
+  add_foreign_key "stat_modifiers", "stat_definitions"
   add_foreign_key "used_tokens", "users"
   add_foreign_key "user_preferences", "users"
 end
