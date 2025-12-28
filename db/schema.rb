@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -189,6 +189,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
     t.integer "faith_destroy"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "base_dice_pool", default: 2, null: false
     t.index ["affiliation_id"], name: "index_fighters_on_affiliation_id"
     t.index ["army_id", "is_character"], name: "index_fighters_on_army_id_and_is_character"
     t.index ["army_id"], name: "index_fighters_on_army_id"
@@ -483,13 +484,29 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_23_163501) do
     t.index ["name"], name: "index_sizes_on_name", unique: true
   end
 
+  create_table "skill_categories", force: :cascade do |t|
+    t.string "name"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["description"], name: "index_skill_categories_on_description"
+    t.index ["name"], name: "index_skill_categories_on_name", unique: true
+  end
+
+  create_table "skill_categories_skills", id: false, force: :cascade do |t|
+    t.bigint "skill_id", null: false
+    t.bigint "skill_category_id", null: false
+    t.index ["skill_id", "skill_category_id"], name: "idx_on_skill_id_skill_category_id_bc9c4b92c3", unique: true
+  end
+
   create_table "skills", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
-    t.boolean "has_value", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "value"
     t.index ["name"], name: "index_skills_on_name", unique: true
+    t.index ["value"], name: "index_skills_on_value"
   end
 
   create_table "solos", force: :cascade do |t|

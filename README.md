@@ -48,7 +48,7 @@ Every bonus or penalty in the game is represented by a `StatModifier` object. Th
 
 #### The Guardian: Requirements (Requirement)
 
-To prevent illegal combinations (e.g., a mage using heavy armor), the system uses `Requirements`. A requirement can be linked to any object (Artifact, Skill, Equipment) to limit its use.
+To prevent illegal combinations (e.g., a mage using heavy armor), the system uses `Requirements`. A requirement can be linked to any object (Artifact, Ability, Equipment) to limit its use.
 
 Types of checks performed:
 
