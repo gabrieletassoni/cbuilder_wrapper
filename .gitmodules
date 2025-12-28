@@ -1,6 +1,8 @@
 [submodule "endor/submodules/cbuilder"]
 	path = endor/submodules/cbuilder
 	url = git@github.com:gabrieletassoni/cbuilder.git
+	branch = release/3
 [submodule "vendor/submodules/cbuilder_it"]
 	path = vendor/submodules/cbuilder_it
 	url = git@github.com:gabrieletassoni/cbuilder_it.git
+	branch = release/3
