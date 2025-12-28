@@ -56,11 +56,14 @@ group :test do
   gem "selenium-webdriver"
 end
 
-gem 'sassc-rails'
-gem 'rails-erd', group: :development
-gem 'rails_admin'
-gem 'devise'
-gem 'cancancan'
-gem 'model_driven_api', '~> 3.1'
-gem 'thecore_ui_rails_admin', '~> 3.2'
+gem "sassc-rails"
+gem "rails-erd", group: :development
+gem "rails_admin"
+gem "devise"
+gem "cancancan"
+gem "model_driven_api", "~> 3.1"
+gem "thecore_ui_rails_admin", "~> 3.2"
 gem "cbuilder", path: "vendor/submodules/cbuilder"
+#
+# Main wrapped content, it gets from the TARGET_LOCALE environment variable defaulting to it if not set
+gem "cbuilder_#{ENV["TARGET_LOCALE"] || "it"}", path: "vendor/submodules/cbuilder_#{ENV["TARGET_LOCALE"] || "it"}"
