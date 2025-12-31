@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -83,7 +83,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
   create_table "affiliations", force: :cascade do |t|
     t.string "name", null: false
     t.bigint "army_id", null: false
-    t.text "bonus_description"
+    t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["army_id", "name"], name: "index_affiliations_on_army_id_and_name"
@@ -120,7 +120,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
     t.string "name", null: false
     t.text "description"
     t.integer "cost", default: 0
-    t.boolean "is_relic", default: false
     t.bigint "army_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -144,18 +143,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
     t.index ["name"], name: "index_equipment_on_name", unique: true
   end
 
-  create_table "equipment_fighters", id: false, force: :cascade do |t|
-    t.bigint "fighter_id", null: false
-    t.bigint "equipment_id", null: false
-    t.index ["fighter_id", "equipment_id"], name: "index_equipment_fighters_on_fighter_id_and_equipment_id", unique: true
-  end
-
-  create_table "equipment_list_entries", id: false, force: :cascade do |t|
-    t.bigint "list_entry_id", null: false
-    t.bigint "equipment_id", null: false
-    t.index ["list_entry_id", "equipment_id"], name: "index_equipment_list_entries_on_list_entry_id_and_equipment_id", unique: true
-  end
-
   create_table "equipment_profiles", id: false, force: :cascade do |t|
     t.bigint "profile_id", null: false
     t.bigint "equipment_id", null: false
@@ -170,8 +157,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
     t.bigint "rank_id", null: false
     t.bigint "size_id", null: false
     t.integer "base_cost", default: 0
-    t.boolean "is_character", default: false
-    t.boolean "is_base_profile", default: true
     t.float "movement_ground"
     t.float "movement_fly"
     t.integer "initiative"
@@ -190,8 +175,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "base_dice_pool", default: 2, null: false
+    t.integer "one_card_every", default: 200
+    t.integer "fighters_on_every_card", default: 1, null: false
     t.index ["affiliation_id"], name: "index_fighters_on_affiliation_id"
-    t.index ["army_id", "is_character"], name: "index_fighters_on_army_id_and_is_character"
     t.index ["army_id"], name: "index_fighters_on_army_id"
     t.index ["name"], name: "index_fighters_on_name"
     t.index ["rank_id"], name: "index_fighters_on_rank_id"
@@ -202,28 +188,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
     t.bigint "fighter_id", null: false
     t.bigint "keyword_id", null: false
     t.index ["fighter_id", "keyword_id"], name: "index_fighters_keywords_on_fighter_id_and_keyword_id", unique: true
-  end
-
-  create_table "fighters_miracles", id: false, force: :cascade do |t|
-    t.bigint "fighter_id", null: false
-    t.bigint "miracle_id", null: false
-    t.index ["fighter_id", "miracle_id"], name: "index_fighters_miracles_on_fighter_id_and_miracle_id", unique: true
-  end
-
-  create_table "fighters_skills", force: :cascade do |t|
-    t.bigint "fighter_id", null: false
-    t.bigint "skill_id", null: false
-    t.integer "value"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["fighter_id"], name: "index_fighters_skills_on_fighter_id"
-    t.index ["skill_id"], name: "index_fighters_skills_on_skill_id"
-  end
-
-  create_table "fighters_spells", id: false, force: :cascade do |t|
-    t.bigint "fighter_id", null: false
-    t.bigint "spell_id", null: false
-    t.index ["fighter_id", "spell_id"], name: "index_fighters_spells_on_fighter_id_and_spell_id", unique: true
   end
 
   create_table "game_formats", force: :cascade do |t|
@@ -242,6 +206,63 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_game_formats_on_name", unique: true
+  end
+
+  create_table "granted_deities", force: :cascade do |t|
+    t.string "worshiper_type", null: false
+    t.bigint "worshiper_id", null: false
+    t.bigint "deity_id", null: false
+    t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deity_id"], name: "index_granted_deities_on_deity_id"
+    t.index ["worshiper_type", "worshiper_id"], name: "index_granted_deities_on_worshiper"
+  end
+
+  create_table "granted_equipments", force: :cascade do |t|
+    t.string "owner_type", null: false
+    t.bigint "owner_id", null: false
+    t.bigint "equipment_id", null: false
+    t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["equipment_id"], name: "index_granted_equipments_on_equipment_id"
+    t.index ["owner_type", "owner_id"], name: "index_granted_equipments_on_owner"
+  end
+
+  create_table "granted_magic_paths", force: :cascade do |t|
+    t.string "mage_type", null: false
+    t.bigint "mage_id", null: false
+    t.bigint "magic_path_id", null: false
+    t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["mage_type", "mage_id"], name: "index_granted_magic_paths_on_mage"
+    t.index ["magic_path_id"], name: "index_granted_magic_paths_on_magic_path_id"
+  end
+
+  create_table "granted_skills", force: :cascade do |t|
+    t.string "target_type", null: false
+    t.bigint "target_id", null: false
+    t.bigint "skill_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "value"
+    t.string "condition"
+    t.index ["skill_id"], name: "index_granted_skills_on_skill_id"
+    t.index ["target_type", "target_id"], name: "index_granted_skills_on_target"
+    t.index ["value"], name: "index_granted_skills_on_value"
+  end
+
+  create_table "granted_solos", force: :cascade do |t|
+    t.string "affiliate_type", null: false
+    t.bigint "affiliate_id", null: false
+    t.bigint "solo_id", null: false
+    t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["affiliate_type", "affiliate_id"], name: "index_granted_solos_on_affiliate"
+    t.index ["solo_id"], name: "index_granted_solos_on_solo_id"
   end
 
   create_table "keywords", force: :cascade do |t|
@@ -327,15 +348,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
     t.index ["name"], name: "index_miracles_on_name", unique: true
   end
 
-  create_table "modification_types", force: :cascade do |t|
-    t.string "code", null: false
-    t.string "symbol"
-    t.text "description"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["code"], name: "index_modification_types_on_code", unique: true
-  end
-
   create_table "nexuses", force: :cascade do |t|
     t.string "name", null: false
     t.integer "resistance"
@@ -405,12 +417,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
     t.datetime "updated_at", null: false
     t.index ["affiliation_id"], name: "index_profiles_on_affiliation_id"
     t.index ["fighter_id"], name: "index_profiles_on_fighter_id"
-  end
-
-  create_table "profiles_solos", id: false, force: :cascade do |t|
-    t.bigint "profile_id", null: false
-    t.bigint "solo_id", null: false
-    t.index ["profile_id", "solo_id"], name: "index_profiles_solos_on_profile_id_and_solo_id", unique: true
   end
 
   create_table "rank_categories", force: :cascade do |t|
@@ -499,13 +505,22 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
     t.index ["skill_id", "skill_category_id"], name: "idx_on_skill_id_skill_category_id_bc9c4b92c3", unique: true
   end
 
+  create_table "skill_targets", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_skill_targets_on_name", unique: true
+  end
+
   create_table "skills", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "value"
+    t.bigint "skill_target_id"
     t.index ["name"], name: "index_skills_on_name", unique: true
+    t.index ["skill_target_id"], name: "index_skills_on_skill_target_id"
     t.index ["value"], name: "index_skills_on_value"
   end
 
@@ -536,31 +551,16 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
     t.index ["name"], name: "index_spells_on_name", unique: true
   end
 
-  create_table "stat_definitions", force: :cascade do |t|
-    t.string "code", null: false
-    t.string "label"
-    t.text "description"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["code"], name: "index_stat_definitions_on_code", unique: true
-  end
-
   create_table "stat_modifiers", force: :cascade do |t|
     t.string "source_type", null: false
     t.bigint "source_id", null: false
-    t.bigint "stat_definition_id"
-    t.bigint "modification_type_id", null: false
-    t.integer "value_integer"
-    t.string "value_string"
-    t.bigint "granted_skill_id"
-    t.boolean "is_mandatory", default: false
-    t.string "condition"
+    t.float "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["granted_skill_id"], name: "index_stat_modifiers_on_granted_skill_id"
-    t.index ["modification_type_id"], name: "index_stat_modifiers_on_modification_type_id"
+    t.string "stat"
+    t.string "condition"
     t.index ["source_type", "source_id"], name: "index_stat_modifiers_on_source"
-    t.index ["stat_definition_id"], name: "index_stat_modifiers_on_stat_definition_id"
+    t.index ["stat"], name: "index_stat_modifiers_on_stat"
   end
 
   create_table "targets", force: :cascade do |t|
@@ -639,8 +639,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
   add_foreign_key "fighters", "armies"
   add_foreign_key "fighters", "ranks"
   add_foreign_key "fighters", "sizes"
-  add_foreign_key "fighters_skills", "fighters"
-  add_foreign_key "fighters_skills", "skills"
+  add_foreign_key "granted_deities", "deities"
+  add_foreign_key "granted_equipments", "equipment"
+  add_foreign_key "granted_magic_paths", "magic_paths"
+  add_foreign_key "granted_solos", "solos"
   add_foreign_key "list_entries", "army_lists"
   add_foreign_key "list_entries", "profiles"
   add_foreign_key "list_nexuses", "army_lists"
@@ -661,12 +663,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_26_173934) do
   add_foreign_key "role_users", "roles"
   add_foreign_key "role_users", "users"
   add_foreign_key "saved_filters", "users", column: "admin_user_id"
+  add_foreign_key "skills", "skill_targets"
   add_foreign_key "solos", "affiliations"
   add_foreign_key "spells", "armies"
   add_foreign_key "spells", "magic_paths"
-  add_foreign_key "stat_modifiers", "modification_types"
-  add_foreign_key "stat_modifiers", "skills", column: "granted_skill_id"
-  add_foreign_key "stat_modifiers", "stat_definitions"
   add_foreign_key "used_tokens", "users"
   add_foreign_key "user_preferences", "users"
 end
