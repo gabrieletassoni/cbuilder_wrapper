@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_01_172350) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -86,6 +86,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "condition"
     t.index ["army_id", "name"], name: "index_affiliations_on_army_id_and_name"
     t.index ["army_id"], name: "index_affiliations_on_army_id"
   end
@@ -123,8 +124,20 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
     t.bigint "army_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "condition"
     t.index ["army_id"], name: "index_artifacts_on_army_id"
     t.index ["name"], name: "index_artifacts_on_name", unique: true
+  end
+
+  create_table "capabilities", force: :cascade do |t|
+    t.string "name"
+    t.bigint "army_id", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["army_id"], name: "index_capabilities_on_army_id"
+    t.index ["description"], name: "index_capabilities_on_description"
+    t.index ["name"], name: "index_capabilities_on_name"
   end
 
   create_table "deities", force: :cascade do |t|
@@ -152,7 +165,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
   create_table "fighters", force: :cascade do |t|
     t.string "name", null: false
     t.string "title"
-    t.bigint "army_id", null: false
+    t.bigint "army_id"
     t.bigint "affiliation_id"
     t.bigint "rank_id", null: false
     t.bigint "size_id", null: false
@@ -208,6 +221,19 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
     t.index ["name"], name: "index_game_formats_on_name", unique: true
   end
 
+  create_table "granted_capabilities", force: :cascade do |t|
+    t.string "capable_type", null: false
+    t.bigint "capable_id", null: false
+    t.bigint "capability_id", null: false
+    t.string "condition"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "cost"
+    t.boolean "remove", default: false
+    t.index ["capability_id"], name: "index_granted_capabilities_on_capability_id"
+    t.index ["capable_type", "capable_id"], name: "index_granted_capabilities_on_capable"
+  end
+
   create_table "granted_deities", force: :cascade do |t|
     t.string "worshiper_type", null: false
     t.bigint "worshiper_id", null: false
@@ -215,6 +241,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
     t.string "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "cost"
+    t.boolean "remove", default: false
     t.index ["deity_id"], name: "index_granted_deities_on_deity_id"
     t.index ["worshiper_type", "worshiper_id"], name: "index_granted_deities_on_worshiper"
   end
@@ -226,6 +254,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
     t.string "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "cost"
+    t.boolean "remove", default: false
     t.index ["equipment_id"], name: "index_granted_equipments_on_equipment_id"
     t.index ["owner_type", "owner_id"], name: "index_granted_equipments_on_owner"
   end
@@ -237,6 +267,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
     t.string "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "cost"
+    t.boolean "remove", default: false
     t.index ["mage_type", "mage_id"], name: "index_granted_magic_paths_on_mage"
     t.index ["magic_path_id"], name: "index_granted_magic_paths_on_magic_path_id"
   end
@@ -249,6 +281,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
     t.datetime "updated_at", null: false
     t.string "value"
     t.string "condition"
+    t.string "cost"
+    t.boolean "remove", default: false
     t.index ["skill_id"], name: "index_granted_skills_on_skill_id"
     t.index ["target_type", "target_id"], name: "index_granted_skills_on_target"
     t.index ["value"], name: "index_granted_skills_on_value"
@@ -261,6 +295,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
     t.string "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "cost"
+    t.boolean "remove", default: false
     t.index ["affiliate_type", "affiliate_id"], name: "index_granted_solos_on_affiliate"
     t.index ["solo_id"], name: "index_granted_solos_on_solo_id"
   end
@@ -415,7 +451,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
     t.string "custom_name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "army_id"
     t.index ["affiliation_id"], name: "index_profiles_on_affiliation_id"
+    t.index ["army_id"], name: "index_profiles_on_army_id"
     t.index ["fighter_id"], name: "index_profiles_on_fighter_id"
   end
 
@@ -482,9 +520,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
 
   create_table "sizes", force: :cascade do |t|
     t.string "name", null: false
-    t.integer "base_wounds", default: 1
-    t.integer "base_force", default: 1
-    t.string "base_dimensions"
+    t.integer "wounds", default: 1
+    t.integer "force", default: 1
+    t.string "dimension"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_sizes_on_name", unique: true
@@ -527,10 +565,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
   create_table "solos", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
-    t.integer "cost", default: 0
+    t.string "cost", default: "0"
     t.bigint "affiliation_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "condition"
     t.index ["affiliation_id"], name: "index_solos_on_affiliation_id"
     t.index ["name"], name: "index_solos_on_name", unique: true
   end
@@ -554,7 +593,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
   create_table "stat_modifiers", force: :cascade do |t|
     t.string "source_type", null: false
     t.bigint "source_id", null: false
-    t.float "value"
+    t.string "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "stat"
@@ -635,10 +674,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
   add_foreign_key "army_lists", "game_formats"
   add_foreign_key "army_lists", "users"
   add_foreign_key "artifacts", "armies"
+  add_foreign_key "capabilities", "armies"
   add_foreign_key "fighters", "affiliations"
   add_foreign_key "fighters", "armies"
   add_foreign_key "fighters", "ranks"
   add_foreign_key "fighters", "sizes"
+  add_foreign_key "granted_capabilities", "capabilities"
   add_foreign_key "granted_deities", "deities"
   add_foreign_key "granted_equipments", "equipment"
   add_foreign_key "granted_magic_paths", "magic_paths"
@@ -658,6 +699,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_31_161819) do
   add_foreign_key "profile_modifiers", "profiles"
   add_foreign_key "profile_modifiers", "stat_modifiers"
   add_foreign_key "profiles", "affiliations"
+  add_foreign_key "profiles", "armies"
   add_foreign_key "profiles", "fighters"
   add_foreign_key "ranks", "rank_categories"
   add_foreign_key "role_users", "roles"
