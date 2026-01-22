@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_01_172350) do
+ActiveRecord::Schema[7.2].define(version: 2026_01_01_191435) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -167,9 +167,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_01_172350) do
     t.string "title"
     t.bigint "army_id"
     t.bigint "affiliation_id"
-    t.bigint "rank_id", null: false
-    t.bigint "size_id", null: false
-    t.integer "base_cost", default: 0
+    t.bigint "rank_id"
+    t.bigint "size_id"
+    t.integer "cost", default: 0
     t.float "movement_ground"
     t.float "movement_fly"
     t.integer "initiative"
@@ -187,12 +187,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_01_172350) do
     t.integer "faith_destroy"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "base_dice_pool", default: 2, null: false
-    t.integer "one_card_every", default: 200
-    t.integer "fighters_on_every_card", default: 1, null: false
+    t.integer "base_dice_pool"
+    t.integer "one_card_every"
+    t.integer "fighters_on_every_card"
+    t.bigint "original_id"
     t.index ["affiliation_id"], name: "index_fighters_on_affiliation_id"
     t.index ["army_id"], name: "index_fighters_on_army_id"
     t.index ["name"], name: "index_fighters_on_name"
+    t.index ["original_id"], name: "index_fighters_on_original_id"
     t.index ["rank_id"], name: "index_fighters_on_rank_id"
     t.index ["size_id"], name: "index_fighters_on_size_id"
   end
@@ -337,13 +339,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_01_172350) do
 
   create_table "list_entries", force: :cascade do |t|
     t.bigint "army_list_id", null: false
-    t.bigint "profile_id", null: false
     t.integer "quantity", default: 1
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["army_list_id", "profile_id"], name: "index_list_entries_on_army_list_id_and_profile_id", unique: true
+    t.bigint "fighter_id", null: false
     t.index ["army_list_id"], name: "index_list_entries_on_army_list_id"
-    t.index ["profile_id"], name: "index_list_entries_on_profile_id"
+    t.index ["fighter_id"], name: "index_list_entries_on_fighter_id"
   end
 
   create_table "list_nexuses", force: :cascade do |t|
@@ -433,28 +434,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_01_172350) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_predicates_on_name", unique: true
-  end
-
-  create_table "profile_modifiers", force: :cascade do |t|
-    t.bigint "profile_id", null: false
-    t.bigint "stat_modifier_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["profile_id", "stat_modifier_id"], name: "idx_uniq_prof_mod", unique: true
-    t.index ["profile_id"], name: "index_profile_modifiers_on_profile_id"
-    t.index ["stat_modifier_id"], name: "index_profile_modifiers_on_stat_modifier_id"
-  end
-
-  create_table "profiles", force: :cascade do |t|
-    t.bigint "fighter_id", null: false
-    t.bigint "affiliation_id"
-    t.string "custom_name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "army_id"
-    t.index ["affiliation_id"], name: "index_profiles_on_affiliation_id"
-    t.index ["army_id"], name: "index_profiles_on_army_id"
-    t.index ["fighter_id"], name: "index_profiles_on_fighter_id"
   end
 
   create_table "rank_categories", force: :cascade do |t|
@@ -677,6 +656,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_01_172350) do
   add_foreign_key "capabilities", "armies"
   add_foreign_key "fighters", "affiliations"
   add_foreign_key "fighters", "armies"
+  add_foreign_key "fighters", "fighters", column: "original_id"
   add_foreign_key "fighters", "ranks"
   add_foreign_key "fighters", "sizes"
   add_foreign_key "granted_capabilities", "capabilities"
@@ -685,7 +665,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_01_172350) do
   add_foreign_key "granted_magic_paths", "magic_paths"
   add_foreign_key "granted_solos", "solos"
   add_foreign_key "list_entries", "army_lists"
-  add_foreign_key "list_entries", "profiles"
+  add_foreign_key "list_entries", "fighters"
   add_foreign_key "list_nexuses", "army_lists"
   add_foreign_key "list_nexuses", "nexuses"
   add_foreign_key "miracles", "armies"
@@ -696,11 +676,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_01_172350) do
   add_foreign_key "permissions", "actions"
   add_foreign_key "permissions", "predicates"
   add_foreign_key "permissions", "targets"
-  add_foreign_key "profile_modifiers", "profiles"
-  add_foreign_key "profile_modifiers", "stat_modifiers"
-  add_foreign_key "profiles", "affiliations"
-  add_foreign_key "profiles", "armies"
-  add_foreign_key "profiles", "fighters"
   add_foreign_key "ranks", "rank_categories"
   add_foreign_key "role_users", "roles"
   add_foreign_key "role_users", "users"

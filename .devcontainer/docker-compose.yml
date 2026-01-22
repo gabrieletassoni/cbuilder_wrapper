@@ -53,6 +53,21 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: postgres
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    restart: unless-stopped
+    ports:
+      - 8978
+    environment:
+      - CLOUDBEAVER_DB_DRIVER=postgres-jdbc
+      - CLOUDBEAVER_DB_URL=jdbc:postgresql://db:5432/postgres
+      - CLOUDBEAVER_DB_USER=postgres
+      - CLOUDBEAVER_DB_PASSWORD=postgres
+      - CLOUDBEAVER_DB_SCHEMA=postgres
+      - CLOUDBEAVER_QM_DB_DRIVER=postgres-jdbc
+      - CLOUDBEAVER_QM_DB_URL=jdbc:postgresql://db:5432/development
+      - CLOUDBEAVER_QM_DB_USER=postgres
+      - CLOUDBEAVER_QM_DB_PASSWORD=postgres
 
     # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
