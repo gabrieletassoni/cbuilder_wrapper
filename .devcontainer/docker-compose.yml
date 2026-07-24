@@ -32,7 +32,6 @@ services:
     # (Adding the "ports" property to this file will not forward from a Codespace.
   redis:
     image: redis:latest
-    restart: unless-stopped
     command: redis-server
     # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
     # network_mode: service:db
@@ -45,7 +44,6 @@ services:
 
   db:
     image: postgres:15-bookworm
-    restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./create-db-user.sql:/docker-entrypoint-initdb.d/create-db-user.sql
@@ -55,7 +53,6 @@ services:
       POSTGRES_PASSWORD: postgres
   cloudbeaver:
     image: dbeaver/cloudbeaver:latest
-    restart: unless-stopped
     ports:
       - 8978
     environment:
