@@ -10,7 +10,9 @@
 	// containers when the network they point at no longer exists (a pruned
 	// network, a Docker upgrade), which otherwise fails every start with
 	// "network <id> not found". Volumes are kept. See the script's header.
-	"initializeCommand": "bash .devcontainer/heal-stale-containers.sh '${localWorkspaceFolder}'",
+	// Then hands the host's docker.sock gid to compose (group_add), so vscode
+	// can use Docker without sudo. See docker-socket-gid.sh.
+	"initializeCommand": "bash .devcontainer/heal-stale-containers.sh '${localWorkspaceFolder}'; bash .devcontainer/docker-socket-gid.sh",
 
 	"customizations": {
 		// Configure properties specific to VS Code.
